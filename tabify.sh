@@ -13,7 +13,7 @@ fi
 # https://stackoverflow.com/questions/22710040/emacs-align-regexp-with-spaces-instead-of-tabs
 
 FILE2EDIT="$1"
-PATH2SCRIPT="$HOME/bin/emacs-scripts"
+PATH2SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 emacs -batch "$FILE2EDIT"                 \
       -l "$PATH2SCRIPT"/emacs_commands.el \
