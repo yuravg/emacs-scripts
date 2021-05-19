@@ -1,0 +1,128 @@
+#!emacs --script
+;; -*- mode: emacs-lisp -*-
+
+;; Change indentations in the input file.
+
+(setq fname nil)
+(setq indent-value 4)
+(setq indent-with-tabs nil)
+(setq convert-indent-chars nil)
+(setq verilog-indent-module t)
+
+(defun usage ()
+  (let ((fname (file-name-nondirectory load-file-name)))
+    (message "Usage:")
+    (message "    %s [fname] [s|t] [tab-width]" fname)
+    (message "               [c|n] [0]")
+    (message "")
+    (message "ARGS:")
+    (message "    [fname]")
+    (message "            Input file name.")
+    (message "    [s|t]")
+    (message "            Indentation chars: s - spaces; t - tabs.")
+    (message "    [tab-width]")
+    (message "            Distance between tab.")
+    (message "OPTIONS:")
+    (message "    [c|n]")
+    (message "            Convert('n' - do Not convert) all spaces or tabs chars,")
+    (message "            run tabify or untabify depending of ARGS [s|t].")
+    (message "    [0]")
+    (message "            Do not indent module and declaration for Verilog-mode.")))
+
+(defun get-arg ()
+  "Get input arguments, return TRUE if success.
+Set global variables:
+FNAME, INDENT-VALUE, INDENT-WITH-TABS, CONVERT-INDENT-CHARS, VERILOG-INDENT-MODULE."
+  (let ((arg-fname (nth 0 argv))
+        (arg-length (length argv))
+        (arg-indent-mode (if (>= (length argv) 2)
+                             (nth 1 argv)
+                           nil))
+        (arg-indent-val (if (>= (length argv) 3)
+                            (string-to-number (nth 2 argv))
+                          0))
+        (arg-convert-chars (if (>= (length argv) 4)
+                               (nth 3 argv)
+                             nil))
+        (arg-verilog-indent-module (if (>= (length argv) 5)
+                                       (string-to-number (nth 4 argv))
+                                     nil)))
+    (if (or (or (< arg-length 3)
+                (> arg-length 5))
+            (not (or (string= arg-indent-mode "s")
+                     (string= arg-indent-mode "t")))
+            (not (> arg-indent-val 0))
+            nil)
+        (progn
+          (usage)
+          nil)
+      (progn
+        (setq fname arg-fname)
+        (if (string= arg-indent-mode "t")
+            (setq indent-with-tabs t))
+        (setq indent-value arg-indent-val)
+        (if (string= arg-convert-chars "c")
+            (setq convert-indent-chars  t))
+        (if arg-verilog-indent-module
+            (setq verilog-indent-module nil))
+        t))))
+
+(defun set-indent-variables-for-buffer (indent-value indent-mode indent-in-verilog buffer-mode)
+  "Setting buffer indentation variables depending on BUFFER-MODE."
+  (if (eq buffer-mode 'verilog-mode)
+      (progn
+        (setq verilog-indent-level             indent-value)
+        (setq verilog-indent-level-module      (if indent-in-verilog indent-value 0))
+        (setq verilog-indent-level-declaration (if indent-in-verilog indent-value 0))
+        (setq verilog-indent-level-behavioral  indent-value)
+        (setq verilog-indent-level-directive   indent-value)
+        (setq verilog-case-indent              indent-value)
+        (setq verilog-auto-newline             nil)
+        (setq verilog-auto-indent-on-newline   nil)
+        (setq verilog-tab-always-indent        nil)
+        (setq verilog-auto-endcomments         nil)
+        (setq verilog-minimum-comment-distance 40)
+        (setq verilog-indent-begin-after-if    nil)
+        (setq verilog-auto-lineup              nil)
+        (setq verilog-align-ifelse             nil)
+        (setq verilog-tab-to-comment           nil)
+        (setq verilog-highlight-p1800-keywords nil)
+        (setq verilog-cexp-indent              indent-value)))
+  ;; Common intent variables
+  (setq tab-width                        indent-value)
+  (setq indent-tabs-mode                 indent-mode))
+
+(defun indent-file (fname indent-value indent-with-tabs indent-in-verilog)
+  "Indent FNAME with INDENT-VALUE, INDENT-WITH-TABS, INDENT-IN-VERILOG indentation variables.
+Return TRUE if success."
+  (if (file-exists-p fname)
+      (progn
+        (find-file fname)
+        ;; Set indent variables
+        (set-indent-variables-for-buffer indent-value
+                                         indent-with-tabs
+                                         indent-in-verilog
+                                         major-mode)
+        ;; spaces or tabs chars update
+        (if convert-indent-chars
+            (if indent-with-tabs
+                (tabify (point-min) (point-max))
+              (untabify (point-min) (point-max))))
+        ;; indent update
+        (indent-region (point-min) (point-max) nil)
+        (save-buffer)
+        (message "Indent file: %s (%s: %s, tab-width=%s%s)"
+                 fname
+                 major-mode
+                 (if indent-tabs-mode "tabs" "spaces")
+                 tab-width
+                 (if convert-indent-chars
+                     ", convert chars"
+                   ""))
+        t)
+    (progn
+      (message "Error! Can not open file: %s" fname)
+      nil)))
+
+(if (get-arg)
+    (indent-file fname indent-value indent-with-tabs verilog-indent-module))
