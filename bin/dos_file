@@ -1,0 +1,43 @@
+#!emacs --script
+;; -*- mode: emacs-lisp -*-
+
+;; Replace EOL to Dos EOL in the input file
+
+(setq fname nil)
+
+(defun usage ()
+  (let ((fname (file-name-nondirectory load-file-name)))
+    (message "Usage:")
+    (message "    %s [fname]" fname)
+    (message "")
+    (message "ARGS:")
+    (message "    [fname]")
+    (message "            Input file name.")))
+
+(defun get-arg ()
+  "Get input arguments, return TRUE if success.
+Set global variable FNAME."
+  (let ((arg-length (length argv)))
+    (if (not (= arg-length 1))
+        (progn
+          (usage)
+          nil)
+      (progn
+        (setq fname (nth 0 argv))
+        t))))
+
+(defun dos-file (fname)
+  "Replace to Dos EOL in the FNAME. Return TRUE if success."
+  (if (file-exists-p fname)
+      (progn
+        (find-file fname)
+        (set-buffer-file-coding-system 'iso-latin-1-dos :force)
+        (save-buffer)
+        (message "Dos EOL: %s" fname)
+        t)
+    (progn
+      (message "Error! Can not open file: %s" fname)
+      nil)))
+
+(if (get-arg)
+    (dos-file fname))
