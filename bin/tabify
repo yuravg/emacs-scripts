@@ -1,0 +1,53 @@
+#!emacs --script
+;; -*- mode: emacs-lisp -*-
+
+;; Replace Spaces with Tabs in the input file.
+
+(setq fname nil)
+(setq indent-value 4)
+
+(defun usage ()
+  (let ((fname (file-name-nondirectory load-file-name)))
+    (message "Usage:")
+    (message "    %s [fname] [tab-width]" fname)
+    (message "")
+    (message "ARGS:")
+    (message "    [fname]")
+    (message "            Input file name.")
+    (message "OPTIONS:")
+    (message "    [tab-width]")
+    (message "            Distance between tab. Default is %s." indent-value)))
+
+(defun get-arg ()
+  "Get input arguments, return TRUE if success.
+Set global variables: FNAME, INDENT-VALUE."
+  (let ((arg-length (length argv)))
+    (if (or (> arg-length 2)
+            (< arg-length 1))
+        (progn
+          (usage)
+          nil)
+      (progn
+        (setq fname (nth 0 argv))
+        (if (> arg-length 1)
+            (setq indent-value
+                  (string-to-number
+                   (nth 1 argv))))
+        t))))
+
+(defun tabify-file (fname indent-value)
+  "Tabify FNAME with INDENT-VALUE. Return TRUE if success."
+  (if (file-exists-p fname)
+      (progn
+        (find-file fname)
+        (setq tab-width indent-value)
+        (tabify (point-min) (point-max))
+        (save-buffer)
+        (message "Tabify file: %s (tab-width=%s)" fname tab-width)
+        t)
+    (progn
+      (message "Error! Can not open file: %s" fname)
+      nil)))
+
+(if (get-arg)
+    (tabify-file fname indent-value))
