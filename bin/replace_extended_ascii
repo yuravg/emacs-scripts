@@ -1,0 +1,59 @@
+#!emacs --script
+;; -*- mode: emacs-lisp -*-
+
+;; Replace extend ASCII characters to ASCII printable characters in the input file.
+
+(setq fname nil)
+
+(defun usage ()
+  (let ((fname (file-name-nondirectory load-file-name)))
+    (message "Usage:")
+    (message "    %s [fname]" fname)
+    (message "")
+    (message "ARGS:")
+    (message "    [fname]")
+    (message "            Input file name.")))
+
+(defun get-arg ()
+  "Get input arguments, return TRUE if success.
+Set global variable FNAME."
+  (let ((arg-length (length argv)))
+    (if (not (= arg-length 1))
+        (progn
+          (usage)
+          nil)
+      (progn
+        (setq fname (nth 0 argv))
+        t))))
+
+(defun replace-chars (fname)
+  "Replace extend ASCII characters to ASCII printable characters
+in the input file FNAME."
+  (if (file-exists-p fname)
+      (progn
+        (find-file fname)
+        (mapc (lambda (pair)
+                (let ((in-expr (car pair))
+                      (out-expr (cdr pair)))
+                  (goto-char (point-min))
+                  (while (re-search-forward in-expr nil :noerror)
+                    (replace-match out-expr))))
+              '(("\“"  . "\"")
+                ("\”"  . "\"")
+                ("\«"  . "\"")
+                ("\»"  . "\"")
+                ("\‘"  . "\'")
+                ("\’"  . "\'")
+                ("—" . "-")
+                ("–"  . "-")
+                ("…"   . "...")
+                ("ˆ"   . "^")))
+        (save-buffer)
+        (message "Replace chars: %s" fname)
+        t)
+    (progn
+      (message "Error! Can not open file: %s" fname)
+      nil)))
+
+(if (get-arg)
+    (replace-chars fname))
