@@ -1,0 +1,24 @@
+#+title: emacs-scripts
+#+author: Yuriy Gritsenko
+#+link: https://github.com/yuravg/emacs-scripts
+
+My Emacs scripts
+
+* Contents
+
+|------------------------+----------------------------------------------------------------------------------|
+| File                   | Description                                                                      |
+|------------------------+----------------------------------------------------------------------------------|
+| [[file:bin/dos_file][dos_file]]               | Replace EOL to Dos EOL in the input file.                                        |
+| [[file:bin/indent][indent]]                 | Change indentations in the input file.                                           |
+| [[file:bin/recode][recode]]                 | Recode the input file from <old-coding-system> to <new-coding-system>            |
+| [[file:bin/replace_extended_ascii][replace_extended_ascii]] | Replace extend ASCII characters to ASCII printable characters in the input file. |
+| [[file:bin/tabify][tabify]]                 | Replace Spaces with Tabs in the input file.                                      |
+| [[file:bin/unix_file][unix-file]]              | Replace EOL to UNIX EOL in the input file.                                       |
+| [[file:bin/untabify][untabify]]               | Replace Tabs with Spaces in the input file.                                      |
+|------------------------+----------------------------------------------------------------------------------|
+
+* Installation
+
+- Download =emacs-scripts=: =git clone https://github.com/yuravg/emacs-scripts= or [[https://github.com/yuravg/emacs-scripts/archive/refs/heads/master.zip][zip-file]]
+- Run the installation [[file:install.sh][script]], or copy scripts from /bin/ to some your /bin/ directory.
