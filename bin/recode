@@ -1,0 +1,67 @@
+#!emacs --script
+;; -*- mode: emacs-lisp -*-
+
+;; Recode the input file from <old-coding-system> to <new-coding-system>
+
+(setq fname nil)
+(setq new-code nil)
+(setq old-code nil)
+
+(defun usage ()
+  (let ((fname (file-name-nondirectory load-file-name)))
+    (message "Usage:")
+    (message "    %s [fname] [old-coding] [new-coding]" fname)
+    (message "    %s [display]" fname)
+    (message "")
+    (message "ARGS:")
+    (message "    [fname]")
+    (message "            Input file name.")
+    (message "    [old-coding]")
+    (message "            Current coding system.")
+    (message "    [new-coding]")
+    (message "            New coding system.")
+    (message "    [display]")
+    (message "            Display available system coding.")))
+
+(defun print-coding ()
+  (message "\nList of coding systems:")
+  (message "%s" (sort (coding-system-list) 'string-collate-lessp)))
+
+
+(defun get-arg ()
+  "Get input arguments, return TRUE if success.
+Set global variables: FNAME, OLD-CODE, NEW-CODE"
+  (let ((arg-length (length argv)))
+    (message "get %s" (nth 0 argv))
+    (if (string= (nth 0 argv) "display")
+        (progn
+          (usage)
+          (print-coding)
+          nil)
+      (if (not (= arg-length 3))
+          (progn
+            (usage)
+            nil)
+        (progn
+          (setq fname (nth 0 argv))
+          (setq old-code (intern (nth 1 argv)))
+          (setq new-code (intern (nth 2 argv)))
+          t)))))
+
+(defun recode-file (fname old-code new-code)
+  "Recode the input file from OLD-CODE to NEW-CODE."
+  (if (file-exists-p fname)
+      (progn
+        (find-file fname)
+        (let ((coding-system-for-read old-code))
+          (revert-buffer :noconfirm t))
+        (set-buffer-file-coding-system new-code)
+        (save-buffer)
+        (message "Recode: %s (%s->%s)" fname old-code new-code)
+        t)
+    (progn
+      (message "Error! Can not open file: %s" fname)
+      nil)))
+
+(if (get-arg)
+    (recode-file fname old-code new-code))
