@@ -1,7 +1,5 @@
-#!emacs --script
-;; -*- mode: emacs-lisp -*-
-
-;; Replace Spaces with Tabs in the input file.
+#!/bin/sh
+":"; exec emacs --quick --script "$0" "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
 
 (setq fname nil)
 (setq indent-value 4)

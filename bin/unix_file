@@ -1,5 +1,5 @@
-#!emacs --script
-;; -*- mode: emacs-lisp -*-
+#!/bin/sh
+":"; exec emacs --quick --script "$0" "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
 
 ;; Replace EOL to UNIX EOL in the input file.
 
