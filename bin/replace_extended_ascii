@@ -47,6 +47,7 @@ in the input file FNAME."
                 ("—" . "-")
                 ("–"  . "-")
                 ("…"   . "...")
+                ("˜"   . "~")
                 ("ˆ"   . "^")))
         (save-buffer)
         (message "Replace chars: %s" fname)
