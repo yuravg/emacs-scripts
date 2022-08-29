@@ -1,0 +1,98 @@
+#!/bin/sh
+":"; exec emacs --quick --script "$0" "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;; Overwrite Verilog/SystemVerilog(SV) identifiers in the input files
+;;
+;; Examples: endmodule                 → endmodule : module_name
+;;           endmodule // module_name  → endmodule : module_name
+;;           endmodule // some_comment → endmodule : module_name
+
+(setq fname nil)
+
+(defun usage ()
+  (let ((fname (file-name-nondirectory load-file-name)))
+    (message "Usage:")
+    (message "    %s [fname]" fname)
+    (message "")
+    (message "ARGS:")
+    (message "    [fname]")
+    (message "            Input file name.")))
+
+(defun get-arg ()
+  "Get input arguments, return TRUE if success.
+Set global variables: FNAME."
+  (let ((arg-length (length argv)))
+    (if (or (> arg-length 2)
+            (< arg-length 1))
+        (progn
+          (usage)
+          nil)
+      (progn
+        (setq fname (nth 0 argv))
+        t))))
+
+(defun verilog-add-or-overwrite-identifiers ()
+  "Add or overwrite Verilog identifiers.
+
+Add or Overwrite identifiers for Verilog:
+task, class, function, interface, package, module.
+
+Examples: endmodule                 → endmodule : module_name
+          endmodule // module_name  → endmodule : module_name
+          endmodule // some_comment → endmodule : module_name"
+  (interactive)
+  (save-excursion
+    (mapc (lambda (keyword)
+            (let ((name))
+              (goto-char (point-min))
+              (while (re-search-forward (concat "^\\s-*\\<" keyword) nil :noerror)
+                ;; Get the instance name
+                (if (or (string-match-p "task" keyword)
+                        (string-match-p "function" keyword)
+                        (string-match-p "module" keyword)
+                        (string-match-p "program" keyword))
+                    (progn (re-search-forward "(\\|;" nil :noerror)
+                           (re-search-backward "\\w" nil :noerror))
+                  (re-search-forward "\\w" nil :noerror))
+                (setq name (symbol-at-point))
+                ;; Move to end of the instance
+                (cond
+                 ((string-match-p "class" keyword) (search-forward "endclass"))
+                 ((string-match-p "task" keyword) (search-forward "endtask"))
+                 ((string-match-p "function" keyword) (search-forward "endfunction"))
+                 ((string-match-p "interface" keyword) (search-forward "endinterface"))
+                 ((string-match-p "package" keyword) (search-forward "endpackage"))
+                 ((string-match-p "module" keyword) (search-forward "endmodule")))
+                ;; Insert new identifier, remove old one
+                (insert (format " : %s tmp" name))
+                (backward-char 4)
+                (kill-line))))
+          '("task" "class" "function" "interface" "package" "module" "program"
+            "virtual class"
+            "static function"
+            "virtual function"
+            "protected function"
+            "virtual protected function"
+            "local function"
+            "static task"
+            "virtual task"
+            "protected task"
+            "virtual protected task"
+            "local task"))))
+
+(defun overwrite-verilog-file (fname)
+  "Overwrite Verilog identtifiers in FNAME file."
+  (if (file-exists-p fname)
+      (progn
+        (find-file fname)
+        ;; (setq tab-width indent-value)
+        (verilog-add-or-overwrite-identifiers)
+        (save-buffer)
+        (message "Overwrite SV identifiers, file: %s" fname)
+        t)
+    (progn
+      (message "Error! Can not open file: %s" fname)
+      nil)))
+
+(if (get-arg)
+    (overwrite-verilog-file fname))
